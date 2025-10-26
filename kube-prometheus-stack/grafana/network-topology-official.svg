@@ -35,7 +35,3 @@ cat > network-topology-fixed.svg << 'EOF'
   <path id="cell-line5" d="M 410 410 L 560 450" fill="none" stroke="#666" stroke-width="2" pointer-events="stroke"/>
 </g>
 </svg>
-EOF
-
-# 复制到 nginx 目录
-cp network-topology-fixed.svg /data/git/kube-prometheus-stack/grafana/
