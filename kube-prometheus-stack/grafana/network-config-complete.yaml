@@ -1,0 +1,106 @@
+#------------------------------------------------------------------------------
+# Panel Config
+
+cellIdPreamble: "cell-"
+cells:
+  unicom_wan:
+    dataRef: "unicom_data"
+    label:
+      separator: "cr"
+      units: "Mbps"
+      decimalPoints: 0
+    labelColor:
+      gradientMode: "hue"
+      thresholds:
+        - {color: "green", level: 0}
+        - {color: "orange", level: 500}
+        - {color: "red", level: 800}
+
+  af_firewall:
+    dataRef: "firewall_data"  
+    label:
+      separator: "cr"
+      units: "Mbps"
+      decimalPoints: 0
+    labelColor:
+      gradientMode: "hue"
+      thresholds:
+        - {color: "green", level: 0}
+        - {color: "orange", level: 400}
+        - {color: "red", level: 600}
+
+  ac_controller:
+    dataRef: "ac_data"
+    label:
+      separator: "cr"
+      units: "Mbps"
+      decimalPoints: 0
+    labelColor:
+      gradientMode: "hue"
+      thresholds:
+        - {color: "green", level: 0}
+        - {color: "orange", level: 300}
+        - {color: "red", level: 500}
+
+  core_switch:
+    dataRef: "core_data"
+    label:
+      separator: "cr"
+      units: "Mbps"
+      decimalPoints: 0
+    labelColor:
+      gradientMode: "hue"
+      thresholds:
+        - {color: "green", level: 0}
+        - {color: "orange", level: 6000}
+        - {color: "red", level: 8000}
+
+  ap_access:
+    dataRef: "ap_data"
+    label:
+      separator: "cr"
+      units: "Mbps"
+      decimalPoints: 0
+    labelColor:
+      gradientMode: "hue"
+      thresholds:
+        - {color: "green", level: 0}
+        - {color: "orange", level: 200}
+        - {color: "red", level: 300}
+
+  server_pool:
+    dataRef: "server_data"
+    label:
+      separator: "cr"
+      units: "Mbps"
+      decimalPoints: 0
+    labelColor:
+      gradientMode: "hue"
+      thresholds:
+        - {color: "green", level: 0}
+        - {color: "orange", level: 1000}
+        - {color: "red", level: 1500}
+
+#------------------------------------------------------------------------------
+# Data Sources
+
+data:
+  series:
+    - alias: "unicom_data"
+      query: "network_bandwidth_up{device='unicom-wan'}"
+      refId: "A"
+    - alias: "firewall_data"
+      query: "network_bandwidth_up{device='af-firewall'}"
+      refId: "B"
+    - alias: "ac_data"
+      query: "network_bandwidth_up{device='ac-controller'}"
+      refId: "C"
+    - alias: "core_data"
+      query: "network_bandwidth_up{device='core-switch'}"
+      refId: "D"
+    - alias: "ap_data"
+      query: "network_bandwidth_up{device='ap-access'}"
+      refId: "E"
+    - alias: "server_data"
+      query: "network_bandwidth_up{device='server-pool'}"
+      refId: "F"
