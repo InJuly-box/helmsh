@@ -1,0 +1,13 @@
+prometheus:
+  prometheusSpec:
+    retention: 14d
+    retentionSize: 15GB
+    additionalScrapeConfigs:
+      - job_name: 'network-simulator'
+        scrape_interval: 10s
+        static_configs:
+          - targets: ['bandwidth-simulator.network-sim.svc.cluster.local:5000']
+        metrics_path: /metrics
+
+grafana:
+  enabled: true

@@ -1,0 +1,230 @@
+# manifests/00-namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: network-sim
+---
+# manifests/01-network-topology.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unicom-wan
+  namespace: network-sim
+  labels:
+    device: wan
+    role: isp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      device: unicom-wan
+  template:
+    metadata:
+      labels:
+        device: unicom-wan
+        role: isp
+    spec:
+      containers:
+      - name: unicom
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DEVICE_TYPE
+          value: "unicom-wan"
+        - name: BANDWIDTH_UP
+          value: "1000"  # 1Gbps 上行
+        - name: BANDWIDTH_DOWN
+          value: "1000"  # 1Gbps 下行
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: af-firewall
+  namespace: network-sim
+  labels:
+    device: firewall
+    role: security
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      device: af-firewall
+  template:
+    metadata:
+      labels:
+        device: af-firewall
+        role: security
+    spec:
+      containers:
+      - name: af
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DEVICE_TYPE
+          value: "af-firewall"
+        - name: BANDWIDTH_UP
+          value: "800"
+        - name: BANDWIDTH_DOWN
+          value: "800"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ac-controller
+  namespace: network-sim
+  labels:
+    device: controller
+    role: wireless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      device: ac-controller
+  template:
+    metadata:
+      labels:
+        device: ac-controller
+        role: wireless
+    spec:
+      containers:
+      - name: ac
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DEVICE_TYPE
+          value: "ac-controller"
+        - name: BANDWIDTH_UP
+          value: "500"
+        - name: BANDWIDTH_DOWN
+          value: "500"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-switch
+  namespace: network-sim
+  labels:
+    device: switch
+    role: core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      device: core-switch
+  template:
+    metadata:
+      labels:
+        device: core-switch
+        role: core
+    spec:
+      containers:
+      - name: core
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DEVICE_TYPE
+          value: "core-switch"
+        - name: BANDWIDTH_UP
+          value: "10000"  # 10Gbps
+        - name: BANDWIDTH_DOWN
+          value: "10000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregation-switch
+  namespace: network-sim
+  labels:
+    device: switch
+    role: aggregation
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      device: aggregation-switch
+  template:
+    metadata:
+      labels:
+        device: aggregation-switch
+        role: aggregation
+    spec:
+      containers:
+      - name: aggregation
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DEVICE_TYPE
+          value: "aggregation-switch"
+        - name: BANDWIDTH_UP
+          value: "1000"
+        - name: BANDWIDTH_DOWN
+          value: "1000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ap-access
+  namespace: network-sim
+  labels:
+    device: ap
+    role: access
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      device: ap-access
+  template:
+    metadata:
+      labels:
+        device: ap-access
+        role: access
+    spec:
+      containers:
+      - name: ap
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DEVICE_TYPE
+          value: "ap-access"
+        - name: BANDWIDTH_UP
+          value: "300"
+        - name: BANDWIDTH_DOWN
+          value: "300"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-pool
+  namespace: network-sim
+  labels:
+    device: server
+    role: application
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      device: server-pool
+  template:
+    metadata:
+      labels:
+        device: server-pool
+        role: application
+    spec:
+      containers:
+      - name: server
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DEVICE_TYPE
+          value: "server-pool"
+        - name: BANDWIDTH_UP
+          value: "2000"
+        - name: BANDWIDTH_DOWN
+          value: "2000"

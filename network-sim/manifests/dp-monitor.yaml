@@ -1,0 +1,115 @@
+# manifests/03-monitoring.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bandwidth-simulator
+  namespace: network-sim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bandwidth-simulator
+  template:
+    metadata:
+      labels:
+        app: bandwidth-simulator
+    spec:
+      containers:
+      - name: simulator
+        image: python:3.9-alpine
+        command: ["/bin/sh"]
+        args: ["-c", "pip install flask prometheus_client && python /app/simulator.py"]
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: scripts
+          mountPath: /app
+        env:
+        - name: SIMULATION_INTERVAL
+          value: "5"
+      volumes:
+      - name: scripts
+        configMap:
+          name: simulator-scripts
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: simulator-scripts
+  namespace: network-sim
+data:
+  simulator.py: |
+    from flask import Flask
+    from prometheus_client import generate_latest, Gauge, Counter, REGISTRY
+    import random
+    import time
+    import os
+
+    app = Flask(__name__)
+
+    # 定义监控指标
+    bandwidth_up = Gauge('network_bandwidth_up', 'Upload bandwidth in Mbps', ['device', 'role'])
+    bandwidth_down = Gauge('network_bandwidth_down', 'Download bandwidth in Mbps', ['device', 'role'])
+    bandwidth_usage_up = Gauge('network_bandwidth_usage_up', 'Upload bandwidth usage percentage', ['device', 'role'])
+    bandwidth_usage_down = Gauge('network_bandwidth_usage_down', 'Download bandwidth usage percentage', ['device', 'role'])
+    packet_loss = Gauge('network_packet_loss', 'Packet loss percentage', ['device', 'role'])
+    latency = Gauge('network_latency', 'Network latency in ms', ['device', 'role'])
+
+    # 设备配置
+    devices = [
+        {'name': 'unicom-wan', 'role': 'isp', 'max_up': 1000, 'max_down': 1000},
+        {'name': 'af-firewall', 'role': 'security', 'max_up': 800, 'max_down': 800},
+        {'name': 'ac-controller', 'role': 'wireless', 'max_up': 500, 'max_down': 500},
+        {'name': 'core-switch', 'role': 'core', 'max_up': 10000, 'max_down': 10000},
+        {'name': 'aggregation-switch', 'role': 'aggregation', 'max_up': 1000, 'max_down': 1000},
+        {'name': 'ap-access', 'role': 'access', 'max_up': 300, 'max_down': 300},
+        {'name': 'server-pool', 'role': 'application', 'max_up': 2000, 'max_down': 2000}
+    ]
+
+    def simulate_network_traffic():
+        while True:
+            for device in devices:
+                # 模拟实时流量（基于最大带宽的随机百分比）
+                up_usage = random.uniform(10, 90)
+                down_usage = random.uniform(10, 90)
+                
+                current_up = device['max_up'] * (up_usage / 100)
+                current_down = device['max_down'] * (down_usage / 100)
+                
+                bandwidth_up.labels(device=device['name'], role=device['role']).set(current_up)
+                bandwidth_down.labels(device=device['name'], role=device['role']).set(current_down)
+                bandwidth_usage_up.labels(device=device['name'], role=device['role']).set(up_usage)
+                bandwidth_usage_down.labels(device=device['name'], role=device['role']).set(down_usage)
+                packet_loss.labels(device=device['name'], role=device['role']).set(random.uniform(0, 2))
+                latency.labels(device=device['name'], role=device['role']).set(random.uniform(1, 50))
+            
+            time.sleep(int(os.getenv('SIMULATION_INTERVAL', '5')))
+
+    @app.route('/metrics')
+    def metrics():
+        return generate_latest(REGISTRY)
+
+    @app.route('/')
+    def index():
+        return "Network Bandwidth Simulator"
+
+    if __name__ == '__main__':
+        import threading
+        simulator_thread = threading.Thread(target=simulate_network_traffic)
+        simulator_thread.daemon = True
+        simulator_thread.start()
+        app.run(host='0.0.0.0', port=5000)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bandwidth-simulator
+  namespace: network-sim
+spec:
+  selector:
+    app: bandwidth-simulator
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+  type: ClusterIP

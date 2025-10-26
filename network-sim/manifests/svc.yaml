@@ -1,0 +1,119 @@
+# manifests/02-services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: unicom-wan
+  namespace: network-sim
+  labels:
+    device: wan
+    role: isp
+spec:
+  selector:
+    device: unicom-wan
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: af-firewall
+  namespace: network-sim
+  labels:
+    device: firewall
+    role: security
+spec:
+  selector:
+    device: af-firewall
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ac-controller
+  namespace: network-sim
+  labels:
+    device: controller
+    role: wireless
+spec:
+  selector:
+    device: ac-controller
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-switch
+  namespace: network-sim
+  labels:
+    device: switch
+    role: core
+spec:
+  selector:
+    device: core-switch
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregation-switch
+  namespace: network-sim
+  labels:
+    device: switch
+    role: aggregation
+spec:
+  selector:
+    device: aggregation-switch
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ap-access
+  namespace: network-sim
+  labels:
+    device: ap
+    role: access
+spec:
+  selector:
+    device: ap-access
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-pool
+  namespace: network-sim
+  labels:
+    device: server
+    role: application
+spec:
+  selector:
+    device: server-pool
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
